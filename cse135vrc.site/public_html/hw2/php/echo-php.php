@@ -27,4 +27,5 @@ $response = [
     "data_received" => $data
 ];
 
-echo json_encode($response);
+echo json_encode($response, JSON_PRETTY_PRINT);
+

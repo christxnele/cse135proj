@@ -36,6 +36,11 @@ Password: christine
 Username: grader  
 Password: grader
 
+## 3rd party analytics discussion
+We chose Plausible Analytics, because it emphasizes privacy with aggregate metrics rather than individual user tracking. The setup process was simple and appears to work well with low traffic.
+Pageview and visitor data appeared in the Plausible dashboard shortly after generating traffic,
+unlike with Google Analytics which required time to load data. Plausible had a clean overview of traffic sources, pages visited, and overall usage without extra detail.
+
 ## Summary of changes to HTML file in DevTools after compression
 After implementing compressions to our site, we observed that the file size for our main page got compressed from 0.6 kB to 0.5 kB.
 
