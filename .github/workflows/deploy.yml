@@ -25,6 +25,7 @@ jobs:
           rsync -avz --delete collector.cse135vrc.site/ $SERVER_USER@$SERVER_IP:/var/www/collector.cse135vrc.site/
           rsync -avz --delete reporting.cse135vrc.site/ $SERVER_USER@$SERVER_IP:/var/www/reporting.cse135vrc.site/
           rsync -avz --delete cse135vrc.site/ $SERVER_USER@$SERVER_IP:/var/www/cse135vrc.site/
+          ssh $SERVER_USER@$SERVER_IP "sudo chown -R $SERVER_USER:$SERVER_USER /var/www/test.cse135vrc.site"
           rsync -avz --delete test.cse135vrc.site/ $SERVER_USER@$SERVER_IP:/var/www/test.cse135vrc.site/
 
           ssh $SERVER_USER@$SERVER_IP "chmod +x /var/www/cse135vrc.site/public_html/hw2/python/*.py"
