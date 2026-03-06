@@ -1,29 +1,3 @@
-<?php
-session_start();
-
-// if logged in, skip to dashboard
-if (isset($_SESSION['user'])) {
-    header('Location: /dashboard.php');
-    exit;
-}
-
-$error = '';
-
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $username = $_POST['username'] ?? '';
-    $password = $_POST['password'] ?? '';
-
-    // grader user and pw
-    if ($username === 'grader' && $password === 'ilovecse135') {
-        $_SESSION['user'] = $username;
-        header('Location: /dashboard.php');
-        exit;
-    } else {
-        $error = 'Invalid credentials';
-    }
-}
-?>
-
 <!DOCTYPE html>
 <html>
     <head>
