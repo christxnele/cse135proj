@@ -21,6 +21,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } else {
         $error = 'Invalid credentials';
     }
+    if ($username === 'christine' && $password === 'ilovemilo') {
+        $_SESSION['user'] = $username;
+        header('Location: /dashboard.php');
+        exit;
+    } else {
+        $error = 'Invalid credentials';
+    }
 }
 ?>
 
