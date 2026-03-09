@@ -17,7 +17,6 @@ if (!isset($_SESSION['user'])) {
         <p>Welcome, <?= htmlspecialchars($_SESSION['user']) ?></p>
 
         <nav>
-            <a href="/reports.php">View Reports</a><br>
             <a href="/logout.php">Logout</a>
         </nav>
 
