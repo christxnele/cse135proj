@@ -257,4 +257,4 @@ function handleEventSummary(PDO $pdo, string $method): void {
     ");
 
     echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
-} (edited)
+}
