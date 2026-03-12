@@ -11,12 +11,12 @@ if (!isset($_SESSION['user'])) {
 
 $currentRole = $_SESSION['role'];
 $currentUser = $_SESSION['user'];
-$currentUserId = $_SESSION['user_id']
+$currentUserId = $_SESSION['user_id'];
 
 
 // check allowed sections from pgres array string
 function getAllowedSections(): array {
-    $raw = $_session['allowed_sections'] ?? null;
+    $raw = $_SESSION['allowed_sections'] ?? null;
     if (!$raw) return [];
     $raw = trim($raw, '{}');
     if ($raw === '') return [];
@@ -29,7 +29,7 @@ function canAccessSection(string $section): bool {
     if ($role === 'super_admin') return true;
     if ($role === 'analyst') {
         $sections = getAllowedSections();
-        return in_array($sectoin, $sections);
+        return in_array($section, $sections);
     }
     return false;   // curr user + their role cannot acces sections
 }
