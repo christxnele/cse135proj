@@ -13,22 +13,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
 
-    // grader user and pw
-    if ($username === 'grader' && $password === 'ilovecse135') {
-        $_SESSION['user'] = $username;
-        header('Location: /dashboard.php');
-        exit;
-    } else {
-        $error = 'Invalid credentials';
-    }
-    if ($username === 'christine' && $password === 'ilovemilo') {
-        $_SESSION['user'] = $username;
-        header('Location: /dashboard.php');
-        exit;
-    } else {
-        $error = 'Invalid credentials';
-    }
-}
+    try {
+        $pdo = new PDO(
+            "pgsql:host=127.0.0.1;port=5432;dbname=analytics",
+            "analytics_user",
+            "analytics-cse135!"
+        );
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE username = :username");
+        $stmt->execute(['username' => $username]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if($user && password_verify($password, $user['password_hash'])) {
+            $_SESSION['user']  = $user['username'];
+            $_SESSION['role']  = $user['role'];
+            $_SESSION['allowed_sections']  = $user['allowed_sections'];
+            $_SESSION['user_id']  = $user['id'];
+            header('Location: /dashboard.php');
+            exit;
+        } else {
+            $error = 'Invalid credentials';
+        } 
+    } catch (Exception $e){
+        $error = 'Database error. Please try again';
+    }  
+        
+} 
 ?>
 
 <!DOCTYPE html>
