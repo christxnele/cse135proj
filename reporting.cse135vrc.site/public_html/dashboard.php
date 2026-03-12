@@ -1,10 +1,4 @@
-<?php
-session_start();
-if (!isset($_SESSION['user'])) {
-    header('Location: /login.php');
-    exit;
-}
-?>
+<?php require_once 'auth.php'; ?>
 
 <!DOCTYPE html>
 <html>
