@@ -1,61 +1,4 @@
-<?php
-require_once 'auth.php';
-requireRole('super_admin');
 
-require_once 'db.php';
-
-$message = '';
-
-// handle form submissions
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_POST['action'] ?? '';
-
-    if ($action === 'add') {
-        $uname    = trim($_POST['username'] ?? '');
-        $pass     = $_POST['password'] ?? '';
-        $role     = $_POST['role'] ?? 'viewer';
-        $sections = trim($_POST['allowed_sections'] ?? '');
-        $email    = trim($_POST['email'] ?? '');
-
-        if ($uname && $pass) {
-            $hash = password_hash($pass, PASSWORD_BCRYPT, ['cost' => 12]);
-            $sectionsVal = $sections ? '{' . $sections . '}' : null;
-            $stmt = $pdo->prepare("INSERT INTO users (username, password_hash, role, allowed_sections, email) VALUES (:u, :h, :r, :s, :e)");
-            $stmt->execute(['u' => $uname, 'h' => $hash, 'r' => $role, 's' => $sectionsVal, 'e' => $email ?: null]);
-            $message = "User '$uname' created.";
-        } else {
-            $message = "Username and password are required.";
-        }
-
-    } elseif ($action === 'edit') {
-        $id       = (int)$_POST['id'];
-        $role     = $_POST['role'] ?? 'viewer';
-        $sections = trim($_POST['allowed_sections'] ?? '');
-        $email    = trim($_POST['email'] ?? '');
-        $sectionsVal = $sections ? '{' . $sections . '}' : null;
-
-        $stmt = $pdo->prepare("UPDATE users SET role = :r, allowed_sections = :s, email = :e WHERE id = :id");
-        $stmt->execute(['r' => $role, 's' => $sectionsVal, 'e' => $email ?: null, 'id' => $id]);
-
-        if ($_POST['password'] ?? '') {
-            $hash = password_hash($_POST['password'], PASSWORD_BCRYPT, ['cost' => 12]);
-            $pdo->prepare("UPDATE users SET password_hash = :h WHERE id = :id")->execute(['h' => $hash, 'id' => $id]);
-        }
-        $message = "User updated.";
-
-    } elseif ($action === 'delete') {
-        $id = (int)$_POST['id'];
-        if ($id !== $currentUserId) { // prevent self-delete
-            $pdo->prepare("DELETE FROM users WHERE id = :id")->execute(['id' => $id]);
-            $message = "User deleted.";
-        } else {
-            $message = "You cannot delete your own account.";
-        }
-    }
-}
-
-$users = $pdo->query("SELECT id, username, role, allowed_sections, email, created_at FROM users ORDER BY id")->fetchAll(PDO::FETCH_ASSOC);
-?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -78,34 +21,104 @@ $users = $pdo->query("SELECT id, username, role, allowed_sections, email, create
     <div class="content">
     <h1>User Management</h1>
 
-    <?php if ($message): ?>
-        <p><?= htmlspecialchars($message) ?></p>
-    <?php endif; ?>
-
+    
     <h2>All Users</h2>
     <table class="admin-table">
         <thead>
             <tr><th>ID</th><th>Username</th><th>Role</th><th>Allowed Sections</th><th>Email</th><th>Created</th><th>Actions</th></tr>
         </thead>
         <tbody>
-        <?php foreach ($users as $u): ?>
-            <tr>
-                <td><?= $u['id'] ?></td>
-                <td><?= htmlspecialchars($u['username']) ?></td>
-                <td><?= $u['role'] ?></td>
-                <td><?= htmlspecialchars($u['allowed_sections'] ?? '—') ?></td>
-                <td><?= htmlspecialchars($u['email'] ?? '—') ?></td>
-                <td><?= date('Y-m-d', strtotime($u['created_at'])) ?></td>
+                    <tr>
+                <td>1</td>
+                <td>grader</td>
+                <td>super_admin</td>
+                <td>—</td>
+                <td>—</td>
+                <td>2026-03-12</td>
                 <td>
                     <form method="POST">
                         <input type="hidden" name="action" value="delete">
-                        <input type="hidden" name="id" value="<?= $u['id'] ?>">
-                        <button class="btn-delete" onclick="return confirm('Delete <?= htmlspecialchars($u['username']) ?>?')">Delete</button>
+                        <input type="hidden" name="id" value="1">
+                        <button class="btn-delete" onclick="return confirm('Delete grader?')">Delete</button>
                     </form>
                 </td>
             </tr>
-        <?php endforeach; ?>
-        </tbody>
+                    <tr>
+                <td>2</td>
+                <td>christine</td>
+                <td>super_admin</td>
+                <td>—</td>
+                <td>—</td>
+                <td>2026-03-12</td>
+                <td>
+                    <form method="POST">
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="id" value="2">
+                        <button class="btn-delete" onclick="return confirm('Delete christine?')">Delete</button>
+                    </form>
+                </td>
+            </tr>
+                    <tr>
+                <td>3</td>
+                <td>sam</td>
+                <td>analyst</td>
+                <td>{performance}</td>
+                <td>—</td>
+                <td>2026-03-12</td>
+                <td>
+                    <form method="POST">
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="id" value="3">
+                        <button class="btn-delete" onclick="return confirm('Delete sam?')">Delete</button>
+                    </form>
+                </td>
+            </tr>
+                    <tr>
+                <td>5</td>
+                <td>viewer1</td>
+                <td>viewer</td>
+                <td>—</td>
+                <td>—</td>
+                <td>2026-03-12</td>
+                <td>
+                    <form method="POST">
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="id" value="5">
+                        <button class="btn-delete" onclick="return confirm('Delete viewer1?')">Delete</button>
+                    </form>
+                </td>
+            </tr>
+                    <tr>
+                <td>6</td>
+                <td>victoria</td>
+                <td>analyst</td>
+                <td>{performance,behavioral}</td>
+                <td>—</td>
+                <td>2026-03-13</td>
+                <td>
+                    <form method="POST">
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="id" value="6">
+                        <button class="btn-delete" onclick="return confirm('Delete victoria?')">Delete</button>
+                    </form>
+                </td>
+            </tr>
+                    <tr>
+                <td>7</td>
+                <td>ryan</td>
+                <td>viewer</td>
+                <td>—</td>
+                <td>—</td>
+                <td>2026-03-13</td>
+                <td>
+                    <form method="POST">
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="id" value="7">
+                        <button class="btn-delete" onclick="return confirm('Delete ryan?')">Delete</button>
+                    </form>
+                </td>
+            </tr>
+                </tbody>
     </table>
 
     <div class="admin-forms-row">
