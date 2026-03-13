@@ -304,6 +304,11 @@ async function loadTraffic() {
     try {
         const resp = await fetch('/api/reports/traffic');
         const data = await resp.json();
+
+        if (data.error) {
+            loading.textContent = 'API error: ' + data.error;
+            return;
+        }
         loading.style.display = 'none';
 
         const kpi = data.kpi;
@@ -367,7 +372,9 @@ async function loadTraffic() {
             </tr>`).join('');
 
     } catch (err) {
-        loading.textContent = 'Failed to load traffic data.';
+        loading.style.display = 'block';
+        loading.textContent = 'Failed to load traffic data: ' + err.message;
+        console.error('Traffic load error:', err);
     }
     loadComments('traffic');
 }
