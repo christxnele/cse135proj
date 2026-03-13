@@ -1,4 +1,6 @@
 <?php
+require_once 'auth.php';
+
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: https://reporting.cse135vrc.site");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
@@ -26,18 +28,7 @@ $resource = $parts[1];
 $id = isset($parts[2]) && $parts[2] !== '' ? $parts[2] : null;
 $method = $_SERVER['REQUEST_METHOD'];
 
-try {
-    $pdo = new PDO(
-        "pgsql:host=127.0.0.1;port=5432;dbname=analytics",
-        "analytics_user",
-        "analytics-cse135!"
-    );
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode(["error" => "Database connection failed"]);
-    exit();
-}
+require_once 'db.php';
 
 if ($resource === 'events') {
     handleEvents($pdo, $method, $id);
