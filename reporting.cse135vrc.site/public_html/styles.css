@@ -80,3 +80,153 @@
     font-family: Georgia, 'Times New Roman', Times, serif;
     font-size: 1.1em;
 }
+
+/* Reports page */
+.tabs-nav {
+    display: flex;
+    gap: 0.5em;
+    margin-bottom: 1.5em;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 0;
+}
+.tab-btn {
+    padding: 0.6em 1.4em;
+    border: 1px solid #ddd;
+    border-bottom: none;
+    background: #f5f5f5;
+    cursor: pointer;
+    font-size: 1em;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    border-radius: 4px 4px 0 0;
+    transition: background 0.15s;
+}
+.tab-btn:hover { background: #e8e8e8; }
+.tab-btn.active {
+    background: white;
+    border-bottom: 2px solid white;
+    margin-bottom: -2px;
+    font-weight: bold;
+}
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+.kpi-row {
+    display: flex;
+    gap: 1em;
+    flex-wrap: wrap;
+    margin-bottom: 1.5em;
+}
+.kpi-card {
+    flex: 1;
+    min-width: 140px;
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 1em 1.2em;
+    text-align: center;
+}
+.kpi-card .kpi-value {
+    font-size: 2em;
+    font-weight: bold;
+    color: #333;
+    display: block;
+}
+.kpi-card .kpi-label {
+    font-size: 0.85em;
+    color: #666;
+    margin-top: 0.2em;
+    display: block;
+}
+
+.charts-row {
+    display: flex;
+    gap: 1.5em;
+    flex-wrap: wrap;
+    margin-bottom: 2em;
+}
+.chart-box {
+    flex: 1;
+    min-width: 300px;
+}
+.chart-box h3 {
+    font-size: 1em;
+    margin-bottom: 0.5em;
+    color: #444;
+}
+.chart-box canvas { max-height: 300px; }
+
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2em;
+    font-size: 0.95em;
+}
+.report-table th {
+    background: #333;
+    color: white;
+    padding: 0.5em 0.8em;
+    text-align: left;
+}
+.report-table td {
+    padding: 0.4em 0.8em;
+    border-bottom: 1px solid #eee;
+}
+.report-table tr:hover td { background: #f9f9f9; }
+
+.score-good    { color: #2e7d32; font-weight: bold; }
+.score-needs   { color: #e65100; font-weight: bold; }
+.score-poor    { color: #b71c1c; font-weight: bold; }
+
+.comments-section { margin-top: 1.5em; }
+.comments-section h3 {
+    font-size: 1.05em;
+    margin-bottom: 0.8em;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 0.4em;
+}
+.comment-list { list-style: none; margin-bottom: 1em; }
+.comment-list li {
+    padding: 0.6em 0.8em;
+    background: #fafafa;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    margin-bottom: 0.5em;
+    font-size: 0.95em;
+}
+.comment-meta {
+    font-size: 0.8em;
+    color: #888;
+    margin-bottom: 0.3em;
+}
+.comment-delete {
+    float: right;
+    background: none;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+    font-size: 0.85em;
+}
+.comment-delete:hover { color: #b71c1c; }
+.comment-form textarea {
+    width: 100%;
+    height: 80px;
+    padding: 0.5em;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 0.95em;
+    resize: vertical;
+}
+.comment-form button {
+    margin-top: 0.5em;
+    padding: 0.4em 1.2em;
+    background: #333;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.9em;
+}
+.comment-form button:hover { background: #555; }
+.loading-msg { color: #888; font-style: italic; }

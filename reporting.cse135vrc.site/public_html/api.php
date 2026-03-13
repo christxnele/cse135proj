@@ -45,6 +45,20 @@ if ($resource === 'events') {
     handleSessions($pdo, $method, $id);
 } elseif ($resource === 'event-summary') {
     handleEventSummary($pdo, $method);
+} elseif ($resource === 'reports') {
+    // $id holds the sub-resource name: traffic | performance | errors
+    if ($id === 'traffic') {
+        handleReportsTraffic($pdo, $method);
+    } elseif ($id === 'performance') {
+        handleReportsPerformance($pdo, $method);
+    } elseif ($id === 'errors') {
+        handleReportsErrors($pdo, $method);
+    } else {
+        http_response_code(404);
+        echo json_encode(["error" => "Unknown report type"]);
+    }
+} elseif ($resource === 'comments') {
+    handleComments($pdo, $method, $id);
 } else {
     http_response_code(404);
     echo json_encode(["error" => "Unknown resource"]);
@@ -257,4 +271,211 @@ function handleEventSummary(PDO $pdo, string $method): void {
     ");
 
     echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+}
+
+function handleReportsTraffic(PDO $pdo, string $method): void {
+    if ($method !== 'GET') {
+        http_response_code(405);
+        echo json_encode(["error" => "Method not allowed"]);
+        return;
+    }
+
+    $kpi = $pdo->query("
+        SELECT COUNT(*) AS total_pageviews,
+               COUNT(DISTINCT session_id) AS unique_sessions
+        FROM events WHERE event_type = 'pageview'
+    ")->fetch(PDO::FETCH_ASSOC);
+
+    $daily = $pdo->query("
+        SELECT DATE(created_at) AS day, COUNT(*) AS views
+        FROM events WHERE event_type = 'pageview'
+        GROUP BY day ORDER BY day
+    ")->fetchAll(PDO::FETCH_ASSOC);
+
+    $topPages = $pdo->query("
+        SELECT url,
+               COUNT(*) AS views,
+               COUNT(DISTINCT session_id) AS sessions,
+               MIN(created_at) AS first_seen,
+               MAX(created_at) AS last_seen
+        FROM events WHERE event_type = 'pageview'
+        GROUP BY url ORDER BY views DESC LIMIT 10
+    ")->fetchAll(PDO::FETCH_ASSOC);
+
+    echo json_encode([
+        "kpi"              => $kpi,
+        "pageviews_per_day" => $daily,
+        "top_pages"        => $topPages,
+    ]);
+}
+
+function handleReportsPerformance(PDO $pdo, string $method): void {
+    if ($method !== 'GET') {
+        http_response_code(405);
+        echo json_encode(["error" => "Method not allowed"]);
+        return;
+    }
+
+    $dist = $pdo->query("
+        SELECT 'lcp' AS metric,
+               COALESCE(payload->'vitals'->'lcp'->>'score', 'unknown') AS score,
+               COUNT(*) AS count
+        FROM events WHERE event_type = 'vitals'
+          AND payload->'vitals'->'lcp' IS NOT NULL
+        GROUP BY score
+        UNION ALL
+        SELECT 'cls' AS metric,
+               COALESCE(payload->'vitals'->'cls'->>'score', 'unknown') AS score,
+               COUNT(*) AS count
+        FROM events WHERE event_type = 'vitals'
+          AND payload->'vitals'->'cls' IS NOT NULL
+        GROUP BY score
+        UNION ALL
+        SELECT 'inp' AS metric,
+               COALESCE(payload->'vitals'->'inp'->>'score', 'unknown') AS score,
+               COUNT(*) AS count
+        FROM events WHERE event_type = 'vitals'
+          AND payload->'vitals'->'inp' IS NOT NULL
+        GROUP BY score
+    ")->fetchAll(PDO::FETCH_ASSOC);
+
+    $pages = $pdo->query("
+        SELECT url,
+               ROUND(AVG((payload->'vitals'->'lcp'->>'value')::numeric))::int AS avg_lcp,
+               ROUND(AVG((payload->'vitals'->'cls'->>'value')::numeric * 1000)::numeric / 1000, 3) AS avg_cls,
+               ROUND(AVG((payload->'vitals'->'inp'->>'value')::numeric))::int AS avg_inp,
+               COUNT(*) AS samples
+        FROM events WHERE event_type = 'vitals'
+        GROUP BY url ORDER BY avg_lcp DESC NULLS LAST LIMIT 20
+    ")->fetchAll(PDO::FETCH_ASSOC);
+
+    echo json_encode([
+        "distributions" => $dist,
+        "pages"         => $pages,
+    ]);
+}
+
+function handleReportsErrors(PDO $pdo, string $method): void {
+    if ($method !== 'GET') {
+        http_response_code(405);
+        echo json_encode(["error" => "Method not allowed"]);
+        return;
+    }
+
+    $byType = $pdo->query("
+        SELECT event_type, COUNT(*) AS count
+        FROM events
+        WHERE event_type IN ('js-error', 'promise-rejection', 'resource-error')
+        GROUP BY event_type ORDER BY count DESC
+    ")->fetchAll(PDO::FETCH_ASSOC);
+
+    $topMessages = $pdo->query("
+        SELECT event_type,
+               COALESCE(payload->>'message', payload->>'src', '(unknown)') AS message,
+               url,
+               COUNT(*) AS occurrences
+        FROM events
+        WHERE event_type IN ('js-error', 'promise-rejection', 'resource-error')
+        GROUP BY event_type, message, url
+        ORDER BY occurrences DESC LIMIT 15
+    ")->fetchAll(PDO::FETCH_ASSOC);
+
+    $affected = $pdo->query("
+        SELECT COUNT(DISTINCT session_id) AS affected_sessions
+        FROM events
+        WHERE event_type IN ('js-error', 'promise-rejection', 'resource-error')
+    ")->fetch(PDO::FETCH_ASSOC);
+
+    $kpi = ['js_errors' => 0, 'promise_rejections' => 0, 'resource_errors' => 0];
+    foreach ($byType as $row) {
+        if ($row['event_type'] === 'js-error')           $kpi['js_errors']           = (int)$row['count'];
+        if ($row['event_type'] === 'promise-rejection')  $kpi['promise_rejections']  = (int)$row['count'];
+        if ($row['event_type'] === 'resource-error')     $kpi['resource_errors']     = (int)$row['count'];
+    }
+    $kpi['affected_sessions'] = (int)$affected['affected_sessions'];
+
+    echo json_encode([
+        "kpi"          => $kpi,
+        "by_type"      => $byType,
+        "top_messages" => $topMessages,
+    ]);
+}
+
+function handleComments(PDO $pdo, string $method, ?string $id): void {
+    if ($method === 'GET') {
+        $reportType = $_GET['report'] ?? null;
+        if ($reportType) {
+            $stmt = $pdo->prepare("
+                SELECT id, report_type, comment_text, author, created_at
+                FROM report_comments
+                WHERE report_type = :rt
+                ORDER BY created_at DESC
+            ");
+            $stmt->execute(['rt' => $reportType]);
+        } else {
+            $stmt = $pdo->query("
+                SELECT id, report_type, comment_text, author, created_at
+                FROM report_comments ORDER BY created_at DESC
+            ");
+        }
+        echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+        return;
+    }
+
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    if (!isset($_SESSION['user'])) {
+        http_response_code(401);
+        echo json_encode(["error" => "Unauthorized"]);
+        return;
+    }
+
+    if ($method === 'POST') {
+        $body = json_decode(file_get_contents("php://input"), true);
+        if (!$body || !isset($body['report_type'], $body['comment_text'])) {
+            http_response_code(400);
+            echo json_encode(["error" => "Missing report_type or comment_text"]);
+            return;
+        }
+        $stmt = $pdo->prepare("
+            INSERT INTO report_comments (report_type, comment_text, author)
+            VALUES (:rt, :ct, :author)
+            RETURNING id, report_type, comment_text, author, created_at
+        ");
+        $stmt->execute([
+            'rt'     => $body['report_type'],
+            'ct'     => $body['comment_text'],
+            'author' => $_SESSION['user'],
+        ]);
+        http_response_code(201);
+        echo json_encode($stmt->fetch(PDO::FETCH_ASSOC));
+        return;
+    }
+
+    if ($method === 'DELETE') {
+        $role = $_SESSION['role'] ?? '';
+        if (!in_array($role, ['analyst', 'super_admin'])) {
+            http_response_code(403);
+            echo json_encode(["error" => "Forbidden"]);
+            return;
+        }
+        if ($id === null) {
+            http_response_code(400);
+            echo json_encode(["error" => "ID required"]);
+            return;
+        }
+        $stmt = $pdo->prepare("DELETE FROM report_comments WHERE id = :id");
+        $stmt->execute(['id' => $id]);
+        if ($stmt->rowCount() === 0) {
+            http_response_code(404);
+            echo json_encode(["error" => "Comment not found"]);
+        } else {
+            echo json_encode(["status" => "deleted"]);
+        }
+        return;
+    }
+
+    http_response_code(405);
+    echo json_encode(["error" => "Method not allowed"]);
 }
