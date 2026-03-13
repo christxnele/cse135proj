@@ -5,56 +5,66 @@
     <head>
         <title>Dashboard</title>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <link rel="stylesheet" href="styles.css">
     </head>
     <body>
-        <h1>Analytics Dashboard</h1>
-        <p>Welcome, <?= htmlspecialchars($_SESSION['user']) ?></p>
-
-        <nav>
-            <a href="/logout.php">Logout</a>
+        <nav class="navbar">
+            <button class="nav-left" id="hamburger">&#9776;</button>
+            <span class="nav-title">Analytics Dashboard</span>
+            <a href="/logout.php" class="nav-right">Logout</a>
         </nav>
 
-        <h2>Event Counts</h2>
+        <div class="sidebar" id="sidebar">
+            <?php if ($currentRole === 'super_admin'): ?>
+                <a href="/admin.php">Manage Accounts</a>
+            <?php endif; ?>
+            <a href="/reports.php">View Reports</a>
+        </div>
+        <div class="overlay" id="overlay"></div>
 
-        <canvas id="eventsChart" width="800" height="400"></canvas>
+        <div class="content">
+            <p>Welcome, <?= htmlspecialchars($_SESSION['user']) ?></p>
+            <h2>Event Counts</h2>
+            <canvas id="eventsChart" width="800" height="400"></canvas>
+            
+            <script>
+            async function loadChart() {
+                const response = await fetch("/api/event-summary");
+                const data = await response.json();
 
-        <script>
-        async function loadChart() {
-            const response = await fetch("/api/event-summary");
-            const data = await response.json();
+                const labels = data.map(row => row.event_type);
+                const values = data.map(row => Number(row.total));
 
-            const labels = data.map(row => row.event_type);
-            const values = data.map(row => Number(row.total));
+                const ctx = document.getElementById("eventsChart").getContext("2d");
 
-            const ctx = document.getElementById("eventsChart").getContext("2d");
+                new Chart(ctx, {
+                    type: "bar",
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: "Event Count",
+                            data: values
+                        }]
+                    }
+                });
+            }
 
-            new Chart(ctx, {
-                type: "bar",
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: "Event Count",
-                        data: values
-                    }]
-                }
-            });
-        }
+            loadChart();
+            </script>
 
-        loadChart();
-        </script>
-
-        <h2>Recent Events</h2>
-        <table id="eventsTable" border="1">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Session ID</th>
-                    <th>Event Type</th>
-                    <th>URL</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+            <h2>Recent Events</h2>
+            <table id="eventsTable" border="1">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Session ID</th>
+                        <th>Event Type</th>
+                        <th>URL</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
 
         <script>
         async function loadTable() {
@@ -73,6 +83,20 @@
             });
         }
         loadTable();
+
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const hamburger = document.getElementById('hamburger');
+
+        hamburger.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+        });
+
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('open');
+        });
         </script>
     </body>
 </html>

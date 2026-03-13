@@ -1,70 +1,42 @@
 <!DOCTYPE html>
+<html>
     <head>
         <title>Dashboard</title>
-        <style>
-            * {margin: 0; padding:0; box-sizing: border-box;}
+        <link rel="stylesheet" href="styles.css">
 
-            .navbar {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                padding: 1em 1.5em;
-                position: sticky;
-                top:0;
-            }
-            .nav-title {
-                position: absolute;
-                left: 50%;
-                transform: translateX(-50%);
-                font-size: 1.2em;
-                font-weight: bold;
-                font-family: Georgia, 'Times New Roman', Times, serif;
-            }
-            .nav-left, .nav-right {
-                text-decoration: none;
-                font-size: 1.1em;
-                cursor: pointer;
-            }
-            
-            .sidebar {
-                position: fixed;
-                top: 0;
-                left: -250px;
-                width: 250px;
-                height: 100%;
-                padding-top: 4em;
-                transition-timing-function: left 0.3 ease;
-                z-index: 999;
-            }
-            .sidebar a {
-                display: block;
-                color: white;
-                padding: 1em 1.5em;
-                text-decoration: none;
-            }
-            .sidebar a:hover { background: #444; }
-            .sidebar.open { left: 0; }
-
-            .content { padding: 2em; }
-                        
-        </style>
     </head>
     <body>
         <nav class="navbar">
-            <a href="#" class="nav-left">☰</a>
-            <span class="nav-title">Analytics Dashboard</span>
+            <button class="nav-left" id="hamburger">&#9776;</button>
+            <a href="/dashboard.php" class="nav-title">Analytics Dashboard</a>
             <a href="/logout.php" class="nav-right">Logout</a>
         </nav>
 
-        <!-- Sidebar (hidden by default) -->
         <div class="sidebar" id="sidebar">
+            <a href="/admin.php">Manage Accounts</a>
             <a href="/reports.php">View Reports</a>
             <a href="/dashboard.php">Dashboard</a>
         </div>
+        <div class="overlay" id="overlay"></div>
 
         <div class="content">
-            <p>Welcome, <?= htmlspecialchars($_SESSION['user']) ?></p>
+            <p>Welcome, user!</p>
         </div>
 
+        <script>
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            const hamburger = document.getElementById('hamburger');
+
+            hamburger.addEventListener('click', () => {
+                sidebar.classList.toggle('open');
+                overlay.classList.toggle('open');
+            });
+
+            overlay.addEventListener('click', () => {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('open');
+            });
+        </script>
     </body>
 </html>
