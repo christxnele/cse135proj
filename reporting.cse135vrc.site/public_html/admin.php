@@ -2,12 +2,7 @@
 require_once 'auth.php';
 requireRole('super_admin');
 
-$pdo = new PDO(
-    "pgsql:host=127.0.0.1;port=5432;dbname=analytics",
-    "analytics_user",
-    "analytics-cse135!"
-);
-$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+require_once 'db.php';
 
 $message = '';
 
@@ -65,9 +60,22 @@ $users = $pdo->query("SELECT id, username, role, allowed_sections, email, create
 <html>
 <head>
     <title>User Management</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <nav><a href="/dashboard.php">&larr; Dashboard</a> | <a href="/logout.php">Logout</a></nav>
+    <nav class="navbar">
+        <button class="nav-left" id="hamburger">&#9776;</button>
+        <span class="nav-title">User Management</span>
+        <a href="/logout.php" class="nav-right">Logout</a>
+    </nav>
+    <div class="sidebar" id="sidebar">
+        <a href="/dashboard.php">Dashboard</a>
+        <a href="/admin.php">Manage Accounts</a>
+        <a href="/report.php">View Reports</a>
+    </div>
+    <div class="overlay" id="overlay"></div>
+
+    <div class="content">
     <h1>User Management</h1>
 
     <?php if ($message): ?>
@@ -139,5 +147,22 @@ $users = $pdo->query("SELECT id, username, role, allowed_sections, email, create
             <button type="submit">Save Changes</button>
         </form>
     </fieldset>
+    </div>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const hamburger = document.getElementById('hamburger');
+
+        hamburger.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+        });
+
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('open');
+        });
+    </script>
 </body>
 </html>

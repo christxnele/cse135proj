@@ -14,6 +14,7 @@
         $stmt = $pdo->query("SELECT * FROM saved_reports ORDER BY created_at DESC");
     }
     $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 ?>
 
 <!DOCTYPE html>
@@ -52,6 +53,12 @@
                     <strong><?= htmlspecialchars($r['name']) ?></strong>
                     <span><?= htmlspecialchars($r['category']) ?></span>
                     <span><?= $r['created_at'] ?></span>
+                    <?php if ($currentRole !== 'viewer'): ?>
+                    <form method="POST" action="/delete-report.php">
+                        <input type="hidden" name="id" value="<?= $r['id'] ?>">
+                        <button type="submit">Delete</button>
+                    </form>
+                <?php endif; ?>
                 </div>
             <?php endforeach; ?>
         <?php endif; ?>
