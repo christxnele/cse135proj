@@ -280,25 +280,40 @@ function handleReportsTraffic(PDO $pdo, string $method): void {
         return;
     }
 
+    // Combine direct pageview events with page-enter sub-events inside activity batches
+    $pageviewsCTE = "
+        WITH pageviews AS (
+            SELECT url, session_id, created_at FROM events WHERE event_type = 'pageview'
+            UNION ALL
+            SELECT COALESCE(sub->>'url', e.url), e.session_id, e.created_at
+            FROM events e, jsonb_array_elements(e.payload->'events') sub
+            WHERE e.event_type = 'activity' AND sub->>'type' = 'page-enter'
+        )
+    ";
+
     $kpi = $pdo->query("
+        $pageviewsCTE
         SELECT COUNT(*) AS total_pageviews,
                COUNT(DISTINCT session_id) AS unique_sessions
-        FROM events WHERE event_type = 'pageview'
+        FROM pageviews
     ")->fetch(PDO::FETCH_ASSOC);
 
     $daily = $pdo->query("
+        $pageviewsCTE
         SELECT DATE(created_at) AS day, COUNT(*) AS views
-        FROM events WHERE event_type = 'pageview'
+        FROM pageviews
         GROUP BY day ORDER BY day
     ")->fetchAll(PDO::FETCH_ASSOC);
 
     $topPages = $pdo->query("
+        $pageviewsCTE
         SELECT url,
                COUNT(*) AS views,
                COUNT(DISTINCT session_id) AS sessions,
                MIN(created_at) AS first_seen,
                MAX(created_at) AS last_seen
-        FROM events WHERE event_type = 'pageview'
+        FROM pageviews
+        WHERE url IS NOT NULL
         GROUP BY url ORDER BY views DESC LIMIT 10
     ")->fetchAll(PDO::FETCH_ASSOC);
 
@@ -362,28 +377,37 @@ function handleReportsErrors(PDO $pdo, string $method): void {
         return;
     }
 
+    // Errors are buffered into 'activity' batches — query sub-events via jsonb_array_elements
+    $errorsCTE = "
+        WITH errors AS (
+            SELECT sub->>'type' AS error_type,
+                   COALESCE(sub->>'message', sub->>'src', '(unknown)') AS message,
+                   e.url,
+                   e.session_id
+            FROM events e, jsonb_array_elements(e.payload->'events') sub
+            WHERE e.event_type = 'activity'
+              AND sub->>'type' IN ('js-error', 'promise-rejection', 'resource-error')
+        )
+    ";
+
     $byType = $pdo->query("
-        SELECT event_type, COUNT(*) AS count
-        FROM events
-        WHERE event_type IN ('js-error', 'promise-rejection', 'resource-error')
-        GROUP BY event_type ORDER BY count DESC
+        $errorsCTE
+        SELECT error_type AS event_type, COUNT(*) AS count
+        FROM errors GROUP BY error_type ORDER BY count DESC
     ")->fetchAll(PDO::FETCH_ASSOC);
 
     $topMessages = $pdo->query("
-        SELECT event_type,
-               COALESCE(payload->>'message', payload->>'src', '(unknown)') AS message,
-               url,
+        $errorsCTE
+        SELECT error_type AS event_type, message, url,
                COUNT(*) AS occurrences
-        FROM events
-        WHERE event_type IN ('js-error', 'promise-rejection', 'resource-error')
-        GROUP BY event_type, message, url
+        FROM errors
+        GROUP BY error_type, message, url
         ORDER BY occurrences DESC LIMIT 15
     ")->fetchAll(PDO::FETCH_ASSOC);
 
     $affected = $pdo->query("
-        SELECT COUNT(DISTINCT session_id) AS affected_sessions
-        FROM events
-        WHERE event_type IN ('js-error', 'promise-rejection', 'resource-error')
+        $errorsCTE
+        SELECT COUNT(DISTINCT session_id) AS affected_sessions FROM errors
     ")->fetch(PDO::FETCH_ASSOC);
 
     $kpi = ['js_errors' => 0, 'promise_rejections' => 0, 'resource_errors' => 0];
