@@ -10,7 +10,7 @@
     <body>
         <nav class="navbar">
             <button class="nav-left" id="hamburger">&#9776;</button>
-            <span class="nav-title">Analytics Dashboard</span>
+            <a href="/dashboard.php" class="nav-title">Analytics Dashboard</a>
             <a href="/logout.php" class="nav-right">Logout</a>
         </nav>
 

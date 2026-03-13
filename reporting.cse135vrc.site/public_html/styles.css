@@ -9,6 +9,7 @@
     top: 0;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     transition: transform 0.1s ease;
+    background-color: white;
 }
 .nav-title {
     position: absolute;
