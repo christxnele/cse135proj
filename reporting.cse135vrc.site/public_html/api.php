@@ -280,48 +280,56 @@ function handleReportsTraffic(PDO $pdo, string $method): void {
         return;
     }
 
-    // Combine direct pageview events with page-enter sub-events inside activity batches
-    $pageviewsCTE = "
-        WITH pageviews AS (
-            SELECT url, session_id, created_at FROM events WHERE event_type = 'pageview'
-            UNION ALL
-            SELECT COALESCE(sub->>'url', e.url), e.session_id, e.created_at
-            FROM events e, jsonb_array_elements(e.payload->'events') sub
-            WHERE e.event_type = 'activity' AND sub->>'type' = 'page-enter'
-        )
-    ";
+    try {
+        // Subquery combining direct pageview events with page-enter sub-events in activity batches.
+        // jsonb_typeof guard prevents errors if payload->events is not an array.
+        $pvsql = "
+            (
+                SELECT url, session_id, created_at
+                FROM events
+                WHERE event_type = 'pageview'
+              UNION ALL
+                SELECT COALESCE(sub->>'url', e.url), e.session_id, e.created_at
+                FROM events e,
+                     jsonb_array_elements(e.payload->'events') AS sub
+                WHERE e.event_type = 'activity'
+                  AND jsonb_typeof(e.payload->'events') = 'array'
+                  AND sub->>'type' = 'page-enter'
+            ) AS pv
+        ";
 
-    $kpi = $pdo->query("
-        $pageviewsCTE
-        SELECT COUNT(*) AS total_pageviews,
-               COUNT(DISTINCT session_id) AS unique_sessions
-        FROM pageviews
-    ")->fetch(PDO::FETCH_ASSOC);
+        $kpi = $pdo->query("
+            SELECT COUNT(*) AS total_pageviews,
+                   COUNT(DISTINCT session_id) AS unique_sessions
+            FROM $pvsql
+        ")->fetch(PDO::FETCH_ASSOC);
 
-    $daily = $pdo->query("
-        $pageviewsCTE
-        SELECT DATE(created_at) AS day, COUNT(*) AS views
-        FROM pageviews
-        GROUP BY day ORDER BY day
-    ")->fetchAll(PDO::FETCH_ASSOC);
+        $daily = $pdo->query("
+            SELECT DATE(created_at) AS day, COUNT(*) AS views
+            FROM $pvsql
+            GROUP BY day ORDER BY day
+        ")->fetchAll(PDO::FETCH_ASSOC);
 
-    $topPages = $pdo->query("
-        $pageviewsCTE
-        SELECT url,
-               COUNT(*) AS views,
-               COUNT(DISTINCT session_id) AS sessions,
-               MIN(created_at) AS first_seen,
-               MAX(created_at) AS last_seen
-        FROM pageviews
-        WHERE url IS NOT NULL
-        GROUP BY url ORDER BY views DESC LIMIT 10
-    ")->fetchAll(PDO::FETCH_ASSOC);
+        $topPages = $pdo->query("
+            SELECT url,
+                   COUNT(*) AS views,
+                   COUNT(DISTINCT session_id) AS sessions,
+                   MIN(created_at) AS first_seen,
+                   MAX(created_at) AS last_seen
+            FROM $pvsql
+            WHERE url IS NOT NULL
+            GROUP BY url ORDER BY views DESC LIMIT 10
+        ")->fetchAll(PDO::FETCH_ASSOC);
 
-    echo json_encode([
-        "kpi"              => $kpi,
-        "pageviews_per_day" => $daily,
-        "top_pages"        => $topPages,
-    ]);
+        echo json_encode([
+            "kpi"               => $kpi,
+            "pageviews_per_day" => $daily,
+            "top_pages"         => $topPages,
+        ]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(["error" => $e->getMessage()]);
+    }
 }
 
 function handleReportsPerformance(PDO $pdo, string $method): void {
