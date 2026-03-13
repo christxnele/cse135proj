@@ -283,13 +283,16 @@ function handleReportsTraffic(PDO $pdo, string $method): void {
     try {
         // Subquery combining direct pageview events with page-enter sub-events in activity batches.
         // jsonb_typeof guard prevents errors if payload->events is not an array.
+        // Timestamp lives in payload->>'timestamp', not a dedicated column.
         $pvsql = "
             (
-                SELECT url, session_id, created_at
+                SELECT url, session_id,
+                       (payload->>'timestamp')::timestamptz AS ts
                 FROM events
                 WHERE event_type = 'pageview'
               UNION ALL
-                SELECT COALESCE(sub->>'url', e.url), e.session_id, e.created_at
+                SELECT COALESCE(sub->>'url', e.url), e.session_id,
+                       (sub->>'timestamp')::timestamptz AS ts
                 FROM events e,
                      jsonb_array_elements(e.payload->'events') AS sub
                 WHERE e.event_type = 'activity'
@@ -305,7 +308,7 @@ function handleReportsTraffic(PDO $pdo, string $method): void {
         ")->fetch(PDO::FETCH_ASSOC);
 
         $daily = $pdo->query("
-            SELECT DATE(created_at) AS day, COUNT(*) AS views
+            SELECT DATE(ts) AS day, COUNT(*) AS views
             FROM $pvsql
             GROUP BY day ORDER BY day
         ")->fetchAll(PDO::FETCH_ASSOC);
@@ -314,8 +317,8 @@ function handleReportsTraffic(PDO $pdo, string $method): void {
             SELECT url,
                    COUNT(*) AS views,
                    COUNT(DISTINCT session_id) AS sessions,
-                   MIN(created_at) AS first_seen,
-                   MAX(created_at) AS last_seen
+                   MIN(ts) AS first_seen,
+                   MAX(ts) AS last_seen
             FROM $pvsql
             WHERE url IS NOT NULL
             GROUP BY url ORDER BY views DESC LIMIT 10
