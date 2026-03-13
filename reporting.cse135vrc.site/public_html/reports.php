@@ -7,11 +7,13 @@ $canComment = in_array($currentRole, ['analyst', 'super_admin']);
 $showTraffic     = $isViewer || canAccessSection('traffic');
 $showPerformance = $isViewer || canAccessSection('performance');
 $showErrors      = $isViewer || canAccessSection('errors');
+$showBehavior    = $isViewer || canAccessSection('behavior');
 
 $visibleTabs = [];
 if ($showTraffic)     $visibleTabs[] = 'traffic';
 if ($showPerformance) $visibleTabs[] = 'performance';
 if ($showErrors)      $visibleTabs[] = 'errors';
+if ($showBehavior)    $visibleTabs[] = 'behavior';
 $defaultTab = $visibleTabs[0] ?? null;
 ?>
 <!DOCTYPE html>
@@ -53,6 +55,9 @@ $defaultTab = $visibleTabs[0] ?? null;
             <?php if ($showErrors): ?>
                 <button class="tab-btn <?= $defaultTab === 'errors' ? 'active' : '' ?>" data-tab="errors">Errors &amp; Reliability</button>
             <?php endif; ?>
+            <?php if ($showBehavior): ?>
+                <button class="tab-btn <?= $defaultTab === 'behavior' ? 'active' : '' ?>" data-tab="behavior">User Behavior</button>
+            <?php endif; ?>
         </div>
 
         <!-- ===== TRAFFIC TAB ===== -->
@@ -82,6 +87,17 @@ $defaultTab = $visibleTabs[0] ?? null;
                 </thead>
                 <tbody id="traffic-table-body"></tbody>
             </table>
+
+            <div class="charts-row">
+                <div class="chart-box">
+                    <h3>Browser Breakdown</h3>
+                    <canvas id="chart-browsers"></canvas>
+                </div>
+                <div class="chart-box">
+                    <h3>OS Breakdown</h3>
+                    <canvas id="chart-os"></canvas>
+                </div>
+            </div>
 
             <div class="comments-section">
                 <h3>Analyst Comments</h3>
@@ -149,6 +165,10 @@ $defaultTab = $visibleTabs[0] ?? null;
                     <h3>Error Counts by Type</h3>
                     <canvas id="chart-errors-type"></canvas>
                 </div>
+                <div class="chart-box">
+                    <h3>Rage Clicks by URL</h3>
+                    <canvas id="chart-rage-clicks"></canvas>
+                </div>
             </div>
 
             <h3 style="margin-bottom:0.5em;">Top Error Messages</h3>
@@ -167,6 +187,47 @@ $defaultTab = $visibleTabs[0] ?? null;
                 <?php if ($canComment): ?>
                 <form class="comment-form" id="errors-comment-form">
                     <textarea placeholder="Add a comment about errors or reliability issues&hellip;" required></textarea>
+                    <button type="submit">Post Comment</button>
+                </form>
+                <?php endif; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <!-- ===== USER BEHAVIOR TAB ===== -->
+        <?php if ($showBehavior): ?>
+        <div class="tab-panel <?= $defaultTab === 'behavior' ? 'active' : '' ?>" id="tab-behavior">
+            <p class="loading-msg" id="behavior-loading">Loading&hellip;</p>
+
+            <div class="kpi-row" id="behavior-kpis"></div>
+
+            <div class="charts-row">
+                <div class="chart-box">
+                    <h3>Avg Scroll Depth by URL (px)</h3>
+                    <canvas id="chart-scroll-depth"></canvas>
+                </div>
+                <div class="chart-box">
+                    <h3>Avg Mouse Travel Distance by URL (px)</h3>
+                    <canvas id="chart-mouse-travel"></canvas>
+                </div>
+            </div>
+
+            <h3 style="margin-bottom:0.5em;">Scroll Depth per Page</h3>
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>URL</th><th>Sessions</th><th>Avg Max Scroll (px)</th><th>Reached 200px</th><th>Reached 500px</th><th>Reached 1000px</th>
+                    </tr>
+                </thead>
+                <tbody id="behavior-scroll-table-body"></tbody>
+            </table>
+
+            <div class="comments-section">
+                <h3>Analyst Comments</h3>
+                <ul class="comment-list" id="behavior-comments"></ul>
+                <?php if ($canComment): ?>
+                <form class="comment-form" id="behavior-comment-form">
+                    <textarea placeholder="Add a comment about user behavior trends&hellip;" required></textarea>
                     <button type="submit">Post Comment</button>
                 </form>
                 <?php endif; ?>
@@ -200,9 +261,10 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 });
 
 function loadTab(name) {
-    if (name === 'traffic')     loadTraffic();
+    if (name === 'traffic')          loadTraffic();
     else if (name === 'performance') loadPerformance();
-    else if (name === 'errors') loadErrors();
+    else if (name === 'errors')      loadErrors();
+    else if (name === 'behavior')    loadBehavior();
 }
 
 // Load the default tab on page load
@@ -277,7 +339,7 @@ async function loadComments(reportType) {
 }
 
 if (CAN_COMMENT) {
-    ['traffic', 'performance', 'errors'].forEach(tab => {
+    ['traffic', 'performance', 'errors', 'behavior'].forEach(tab => {
         const form = document.getElementById(tab + '-comment-form');
         if (!form) return;
         form.addEventListener('submit', async (e) => {
@@ -370,6 +432,29 @@ async function loadTraffic() {
                 <td>${fmtDate(r.first_seen)}</td>
                 <td>${fmtDate(r.last_seen)}</td>
             </tr>`).join('');
+
+        // Browser breakdown chart
+        if (data.devices) {
+            const browsers = data.devices.browsers || [];
+            makeChart('chart-browsers', {
+                type: 'bar',
+                data: {
+                    labels: browsers.map(r => r.browser),
+                    datasets: [{ label: 'Pageviews', data: browsers.map(r => Number(r.count)), backgroundColor: '#1565c0' }]
+                },
+                options: { indexAxis: 'y', scales: { x: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+            });
+
+            const oses = data.devices.os || [];
+            makeChart('chart-os', {
+                type: 'bar',
+                data: {
+                    labels: oses.map(r => r.os),
+                    datasets: [{ label: 'Pageviews', data: oses.map(r => Number(r.count)), backgroundColor: '#6a1b9a' }]
+                },
+                options: { indexAxis: 'y', scales: { x: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+            });
+        }
 
     } catch (err) {
         loading.style.display = 'block';
@@ -476,7 +561,8 @@ async function loadErrors() {
             kpiCard(Number(k.js_errors).toLocaleString(), 'JS Errors') +
             kpiCard(Number(k.promise_rejections).toLocaleString(), 'Promise Rejections') +
             kpiCard(Number(k.resource_errors).toLocaleString(), 'Resource Errors') +
-            kpiCard(Number(k.affected_sessions).toLocaleString(), 'Affected Sessions');
+            kpiCard(Number(k.affected_sessions).toLocaleString(), 'Affected Sessions') +
+            kpiCard(Number(k.rage_click_incidents ?? 0).toLocaleString(), 'Rage Click Incidents');
 
         const typeColors = {
             'js-error':          '#e53935',
@@ -499,6 +585,20 @@ async function loadErrors() {
             }
         });
 
+        // Rage clicks chart
+        if (data.rage_clicks && data.rage_clicks.length) {
+            const rc = data.rage_clicks;
+            const rcLabels = rc.map(r => { try { return new URL(r.url).pathname; } catch(e) { return r.url || '(unknown)'; } });
+            makeChart('chart-rage-clicks', {
+                type: 'bar',
+                data: {
+                    labels: rcLabels,
+                    datasets: [{ label: 'Incidents', data: rc.map(r => Number(r.incidents)), backgroundColor: '#e53935' }]
+                },
+                options: { indexAxis: 'y', scales: { x: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+            });
+        }
+
         const tbody = document.getElementById('errors-table-body');
         tbody.innerHTML = data.top_messages.map(r => `
             <tr>
@@ -512,6 +612,71 @@ async function loadErrors() {
         loading.textContent = 'Failed to load error data.';
     }
     loadComments('errors');
+}
+
+// ---- User Behavior ----
+async function loadBehavior() {
+    const loading = document.getElementById('behavior-loading');
+    try {
+        const resp = await fetch('/api/reports/behavior');
+        const data = await resp.json();
+
+        if (data.error) {
+            loading.textContent = 'API error: ' + data.error;
+            return;
+        }
+        loading.style.display = 'none';
+
+        const scrollData = data.scroll_depth || [];
+        const mouseData  = data.mouse_travel || [];
+
+        document.getElementById('behavior-kpis').innerHTML =
+            kpiCard(scrollData.length.toLocaleString(), 'Pages with Scroll Data') +
+            kpiCard(mouseData.length.toLocaleString(), 'Pages with Mouse Data');
+
+        // Scroll depth chart
+        if (scrollData.length) {
+            const sdLabels = scrollData.map(r => { try { return new URL(r.url).pathname; } catch(e) { return r.url || '(unknown)'; } });
+            makeChart('chart-scroll-depth', {
+                type: 'bar',
+                data: {
+                    labels: sdLabels,
+                    datasets: [{ label: 'Avg Max Scroll (px)', data: scrollData.map(r => Number(r.avg_max_scroll_px)), backgroundColor: '#00838f' }]
+                },
+                options: { indexAxis: 'y', scales: { x: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+            });
+        }
+
+        // Mouse travel chart
+        if (mouseData.length) {
+            const mtLabels = mouseData.map(r => { try { return new URL(r.url).pathname; } catch(e) { return r.url || '(unknown)'; } });
+            makeChart('chart-mouse-travel', {
+                type: 'bar',
+                data: {
+                    labels: mtLabels,
+                    datasets: [{ label: 'Avg Travel (px)', data: mouseData.map(r => Number(r.avg_travel_px)), backgroundColor: '#2e7d32' }]
+                },
+                options: { indexAxis: 'y', scales: { x: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+            });
+        }
+
+        // Scroll depth table
+        const tbody = document.getElementById('behavior-scroll-table-body');
+        tbody.innerHTML = scrollData.map(r => `
+            <tr>
+                <td>${esc(r.url)}</td>
+                <td>${Number(r.sessions).toLocaleString()}</td>
+                <td>${Number(r.avg_max_scroll_px).toLocaleString()}</td>
+                <td>${Number(r.reached_200).toLocaleString()}</td>
+                <td>${Number(r.reached_500).toLocaleString()}</td>
+                <td>${Number(r.reached_1000).toLocaleString()}</td>
+            </tr>`).join('');
+
+    } catch (err) {
+        loading.textContent = 'Failed to load behavior data.';
+        console.error('Behavior load error:', err);
+    }
+    loadComments('behavior');
 }
 
 // ---- Sidebar ----
