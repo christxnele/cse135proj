@@ -1,4 +1,5 @@
 <?php
+// Event collection endpoint
 header("Content-Type: application/json");
 
 //Allow POST requests
