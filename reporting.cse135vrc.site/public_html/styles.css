@@ -309,3 +309,77 @@
     font-size: 0.95em;
 }
 .admin-form .btn-submit:hover { background: #555; }
+
+.reports-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1em;
+    margin-bottom: 1.25em;
+    flex-wrap: wrap;
+}
+
+.export-btn {
+    padding: 0.6em 1.2em;
+    background: #333;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    font-size: 0.95em;
+    font-weight: bold;
+}
+
+.export-btn:hover {
+    background: #555;
+}
+
+.export-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.export-meta {
+    display: none;
+    margin-bottom: 1em;
+    padding-bottom: 0.75em;
+    border-bottom: 1px solid #ddd;
+}
+
+.export-meta h2 {
+    margin-bottom: 0.25em;
+}
+
+.export-meta p {
+    margin: 0.15em 0;
+    color: #555;
+    font-size: 0.95em;
+}
+
+.exporting .export-meta {
+    display: block;
+}
+
+.exporting .comment-form,
+.exporting .comment-delete,
+.exporting .loading-msg,
+.exporting .tabs-nav,
+.exporting .reports-toolbar,
+.exporting .navbar,
+.exporting .sidebar,
+.exporting .overlay {
+    display: none !important;
+}
+
+.exporting .tab-panel {
+    display: none !important;
+}
+
+.exporting .tab-panel.active {
+    display: block !important;
+}
+
+.exporting .content {
+    background: white;
+}
