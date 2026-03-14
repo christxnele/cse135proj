@@ -123,6 +123,7 @@ Claude Code (claude-sonnet-4-6) was used extensively throughout this project for
 - Writing the rage click detection query — identifying activity batches with 3+ click sub-events as a proxy for frustrated users
 - Helping structure the role-based access control pattern (`allowed_sections` JSONB + `canAccessSection()`) and applying it consistently to the new Behavior tab
 - Refining UA-string parsing order (Edge must be checked before Chrome because Edge's UA string contains "Chrome/")
+- Implementing the three-tier user permission system (super admin, analyst, viewer), including section-based access control for analysts where each analyst can be restricted to a defined subset of report sections (traffic, performance, errors, behavior) via checkboxes in the admin panel, with viewers restricted to read-only access to saved report snapshots
 
 **Observed value:** AI was most valuable for the database query layer. Writing correct CTEs with window functions for aggregating nested JSONB sub-events (the collector stores click, scroll, and mousemove events inside a JSONB array within a single activity row) would have taken considerably longer by hand. The AI maintained the existing code patterns accurately and caught the UA edge case without prompting.
 
