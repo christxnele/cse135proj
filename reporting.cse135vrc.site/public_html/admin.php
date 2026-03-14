@@ -14,12 +14,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $uname    = trim($_POST['username'] ?? '');
         $pass     = $_POST['password'] ?? '';
         $role     = $_POST['role'] ?? 'viewer';
-        $sections = trim($_POST['allowed_sections'] ?? '');
+        $sections = $_POST['sections'] ?? [];
         $email    = trim($_POST['email'] ?? '');
 
         if ($uname && $pass) {
             $hash = password_hash($pass, PASSWORD_BCRYPT, ['cost' => 12]);
-            $sectionsVal = $sections ? '{' . $sections . '}' : null;
+            $sectionsVal = !empty($sections) ? '{' . implode(',', $sections) . '}' : null;
             $stmt = $pdo->prepare("INSERT INTO users (username, password_hash, role, allowed_sections, email) VALUES (:u, :h, :r, :s, :e)");
             $stmt->execute(['u' => $uname, 'h' => $hash, 'r' => $role, 's' => $sectionsVal, 'e' => $email ?: null]);
             $message = "User '$uname' created.";
@@ -30,9 +30,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($action === 'edit') {
         $id       = (int)$_POST['id'];
         $role     = $_POST['role'] ?? 'viewer';
-        $sections = trim($_POST['allowed_sections'] ?? '');
+        $sections = $_POST['sections'] ?? [];
         $email    = trim($_POST['email'] ?? '');
-        $sectionsVal = $sections ? '{' . $sections . '}' : null;
+        $sectionsVal = !empty($sections) ? '{' . implode(',', $sections) . '}' : null;
 
         $stmt = $pdo->prepare("UPDATE users SET role = :r, allowed_sections = :s, email = :e WHERE id = :id");
         $stmt->execute(['r' => $role, 's' => $sectionsVal, 'e' => $email ?: null, 'id' => $id]);
@@ -123,8 +123,13 @@ $users = $pdo->query("SELECT id, username, role, allowed_sections, email, create
                     <option value="super_admin">Super Admin</option>
                 </select>
             </label>
-            <label>Allowed Sections (analysts only, comma-separated e.g. <code>performance,behavioral</code>):
-                <input type="text" name="allowed_sections" placeholder="performance,behavioral">
+            <label>Allowed Sections (analysts only):
+                <div class="checkbox-group">
+                    <label><input type="checkbox" name="sections[]" value="traffic"> Traffic &amp; Engagement</label>
+                    <label><input type="checkbox" name="sections[]" value="performance"> Performance</label>
+                    <label><input type="checkbox" name="sections[]" value="errors"> Errors &amp; Reliability</label>
+                    <label><input type="checkbox" name="sections[]" value="behavior"> User Behavior</label>
+                </div>
             </label>
             <label>Email (optional): <input type="email" name="email"></label>
             <button type="submit" class="btn-submit">Add User</button>
@@ -143,7 +148,14 @@ $users = $pdo->query("SELECT id, username, role, allowed_sections, email, create
                     <option value="super_admin">Super Admin</option>
                 </select>
             </label>
-            <label>Allowed Sections: <input type="text" name="allowed_sections" placeholder="performance,behavioral"></label>
+            <label>Allowed Sections:
+                <div class="checkbox-group">
+                    <label><input type="checkbox" name="sections[]" value="traffic"> Traffic &amp; Engagement</label>
+                    <label><input type="checkbox" name="sections[]" value="performance"> Performance</label>
+                    <label><input type="checkbox" name="sections[]" value="errors"> Errors &amp; Reliability</label>
+                    <label><input type="checkbox" name="sections[]" value="behavior"> User Behavior</label>
+                </div>
+            </label>
             <label>Email: <input type="email" name="email"></label>
             <label>New Password (leave blank to keep current): <input type="password" name="password"></label>
             <button type="submit" class="btn-submit">Save Changes</button>

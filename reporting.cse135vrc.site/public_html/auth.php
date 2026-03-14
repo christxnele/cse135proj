@@ -20,7 +20,7 @@ function getAllowedSections(): array {
     if (!$raw) return [];
     $raw = trim($raw, '{}');
     if ($raw === '') return [];
-    return explode(',', $raw);
+    return array_map('trim', explode(',', $raw));
 }
 
 // check if curr user and their role can access a specific secction
