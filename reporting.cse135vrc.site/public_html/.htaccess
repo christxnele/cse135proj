@@ -5,5 +5,6 @@ Require valid-user
 ErrorDocument 404 /new404.html
 
 RewriteEngine On
+RewriteRule ^$ /reports.php [R=302,L]
 RewriteRule ^api(/.*)?$ api.php [QSA,L]
 

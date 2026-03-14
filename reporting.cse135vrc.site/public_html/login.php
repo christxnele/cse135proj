@@ -3,7 +3,7 @@ session_start();
 
 // if logged in, skip to dashboard
 if (isset($_SESSION['user'])) {
-    header('Location: /dashboard.php');
+    header('Location: /reports.php');
     exit;
 }
 
@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_SESSION['role']  = $user['role'];
             $_SESSION['allowed_sections']  = $user['allowed_sections'];
             $_SESSION['user_id']  = $user['id'];
-            header('Location: /dashboard.php');
+            header('Location: /reports.php');
             exit;
         } else {
             $error = 'Invalid credentials';
