@@ -72,7 +72,7 @@ Full CRUD on `events` and `sessions`. Read-only aggregate endpoints:
 
 ## Reports Page — Tab by Tab
 
-The reports page (`/reports.php`) is the main analytical interface. Access to each tab is controlled by role — `super_admin` and `analyst` can see all tabs and post comments; `viewer` sees all tabs read-only; analysts with a restricted `allowed_sections` JSONB field only see their assigned tabs.
+The reports page (`/reports.php`) is the main analytical interface. Access to each tab is controlled by role — `super_admin` and `analyst` can see all tabs and post comments; `viewer` sees only saved reports; analysts with a restricted `allowed_sections` JSONB field only see their assigned tabs.
 
 ### Traffic & Engagement
 
