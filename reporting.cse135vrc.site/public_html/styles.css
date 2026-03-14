@@ -399,3 +399,13 @@
     width: 100% !important;
     max-width: 100% !important;
 }
+
+.report-item {
+    display: flex;
+    align-items: center;
+    gap: 1em;
+    padding: 0.75em 0;
+    border-bottom: 1px solid #eee;
+}
+.report-item a { text-decoration: none; color: #1565c0; }
+.report-item a:hover { text-decoration: underline; }

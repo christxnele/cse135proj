@@ -112,6 +112,13 @@ $defaultTab = $visibleTabs[0] ?? null;
                 </div>
             </div>
 
+            <?php if ($canComment): ?>
+            <div class="reports-toolbar">
+                <span></span>
+                <button class="export-btn" id="save-btn-traffic" onclick="saveSnapshot('traffic')">Save Report</button>
+            </div>
+            <?php endif; ?>
+
             <div class="comments-section">
                 <h3>Analyst Comments</h3>
                 <ul class="comment-list" id="traffic-comments"></ul>
@@ -157,6 +164,13 @@ $defaultTab = $visibleTabs[0] ?? null;
                 </thead>
                 <tbody id="performance-table-body"></tbody>
             </table>
+
+            <?php if ($canComment): ?>
+            <div class="reports-toolbar">
+                <span></span>
+                <button class="export-btn" id="save-btn-performance" onclick="saveSnapshot('performance')">Save Report</button>
+            </div>
+            <?php endif; ?>
 
             <div class="comments-section">
                 <h3>Analyst Comments</h3>
@@ -204,6 +218,13 @@ $defaultTab = $visibleTabs[0] ?? null;
                 <tbody id="errors-table-body"></tbody>
             </table>
 
+            <?php if ($canComment): ?>
+            <div class="reports-toolbar">
+                <span></span>
+                <button class="export-btn" id="save-btn-errors" onclick="saveSnapshot('errors')">Save Report</button>
+            </div>
+            <?php endif; ?>
+
             <div class="comments-section">
                 <h3>Analyst Comments</h3>
                 <ul class="comment-list" id="errors-comments"></ul>
@@ -250,6 +271,13 @@ $defaultTab = $visibleTabs[0] ?? null;
                 <tbody id="behavior-scroll-table-body"></tbody>
             </table>
 
+            <?php if ($canComment): ?>
+            <div class="reports-toolbar">
+                <span></span>
+                <button class="export-btn" id="save-btn-behavior" onclick="saveSnapshot('behavior')">Save Report</button>
+            </div>
+            <?php endif; ?>
+
             <div class="comments-section">
                 <h3>Analyst Comments</h3>
                 <ul class="comment-list" id="behavior-comments"></ul>
@@ -272,6 +300,7 @@ const CAN_COMMENT  = <?= json_encode($canComment) ?>;
 const CURRENT_ROLE = <?= json_encode($currentRole) ?>;
 const chartInstances = {};
 const tabLoaded = {};
+const tabData = {};
 let activeTab = <?= json_encode($defaultTab) ?>;
 
 document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -458,6 +487,7 @@ async function loadTraffic() {
     try {
         const resp = await fetch('/api/reports/traffic');
         const data = await resp.json();
+        tabData['traffic'] = data;
 
         if (data.error) {
             loading.textContent = 'API error: ' + data.error;
@@ -579,6 +609,7 @@ async function loadPerformance() {
     try {
         const resp = await fetch('/api/reports/performance');
         const data = await resp.json();
+        tabData['performance'] = data;
         loading.style.display = 'none';
 
         const dist = data.distributions;
@@ -672,6 +703,7 @@ async function loadErrors() {
     try {
         const resp = await fetch('/api/reports/errors');
         const data = await resp.json();
+        tabData['errors'] = data;
         loading.style.display = 'none';
 
         const k = data.kpi;
@@ -749,6 +781,7 @@ async function loadBehavior() {
     try {
         const resp = await fetch('/api/reports/behavior');
         const data = await resp.json();
+        tabData['behavior'] = data;
 
         if (data.error) {
             loading.textContent = 'API error: ' + data.error;
@@ -828,6 +861,32 @@ async function loadBehavior() {
     }
 
     loadComments('behavior');
+}
+
+async function saveSnapshot(tab) {
+    const name = prompt('Enter a name for this report:');
+    if (!name || !name.trim()) return;
+
+    const btn = document.getElementById('save-btn-' + tab);
+    if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+
+    const resp = await fetch('/save-report.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            name: name.trim(),
+            category: tab,
+            report_data: tabData[tab] ?? {}
+        })
+    });
+
+    if (btn) { btn.disabled = false; btn.textContent = 'Save Report'; }
+
+    if (resp.ok) {
+        alert('Report saved! Viewers can now see it in View Reports.');
+    } else {
+        alert('Failed to save report.');
+    }
 }
 
 const sidebar = document.getElementById('sidebar');
