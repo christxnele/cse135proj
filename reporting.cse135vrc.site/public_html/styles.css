@@ -393,11 +393,19 @@
     width: 100% !important;
     max-width: 100% !important;
     margin-bottom: 1.5em;
+    page-break-inside: avoid;
+    break-inside: avoid;
 }
 
 .exporting .chart-box canvas {
     width: 100% !important;
     max-width: 100% !important;
+}
+
+.exporting .kpi-row,
+.exporting .comments-section {
+    page-break-inside: avoid;
+    break-inside: avoid;
 }
 
 .report-item {
@@ -407,23 +415,35 @@
     padding: 0.75em 0;
     border-bottom: 1px solid #eee;
 }
-.report-item a { text-decoration: none; color: #1565c0; }
-.report-item a:hover { text-decoration: underline; }
+
+.report-item a {
+    text-decoration: none;
+    color: #1565c0;
+}
+
+.report-item a:hover {
+    text-decoration: underline;
+}
+
 .exporting .report-table {
     width: 100% !important;
+    font-size: 0.85em;
     page-break-inside: auto;
     break-inside: auto;
 }
 
 .exporting .report-table thead {
-    display: table-header-group;
+    display: table-row-group;
 }
 
-.exporting .report-table tr,
-.exporting .report-table th,
-.exporting .report-table td {
+.exporting .report-table tr {
     page-break-inside: avoid;
     break-inside: avoid;
+}
+
+.exporting .report-table th,
+.exporting .report-table td {
+    padding: 0.35em 0.5em;
 }
 
 .exporting h3 {
