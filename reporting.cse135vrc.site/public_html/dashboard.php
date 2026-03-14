@@ -1,7 +1,7 @@
 <?php 
 require_once 'auth.php'; 
 if ($currentRole === 'viewer') {
-    header('Location: /report.php');
+    header('Location: /reports.php');
     exit;
 }
 ?>

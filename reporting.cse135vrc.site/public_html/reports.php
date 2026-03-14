@@ -35,7 +35,7 @@ $defaultTab = $visibleTabs[0] ?? null;
         <?php if ($currentRole === 'super_admin'): ?>
             <a href="/admin.php">Manage Accounts</a>
         <?php endif; ?>
-        <a href="/reports.php">View Reports</a>
+        <a href="/report.php">View Reports</a>
     </div>
     <div class="overlay" id="overlay"></div>
 
