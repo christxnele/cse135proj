@@ -8,7 +8,7 @@
 
 | | URL |
 |-|-----|
-| **Repo** | https://github.com/ryansoe/cse135hw1 |
+| **Repo** | https://github.com/christxnele/cse135proj|
 | **Course site** | https://cse135vrc.site |
 | **Analytics dashboard** | https://reporting.cse135vrc.site |
 | **Collector endpoint** | https://collector.cse135vrc.site |
