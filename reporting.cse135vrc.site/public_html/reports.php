@@ -1,6 +1,11 @@
 <?php
 require_once 'auth.php';
 
+if ($currentRole === 'viewer') {
+    header('Location: /report.php');
+    exit;
+}
+
 $isViewer  = ($currentRole === 'viewer');
 $canComment = in_array($currentRole, ['analyst', 'super_admin']);
 

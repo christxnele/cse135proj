@@ -38,12 +38,14 @@
 <body>
         <nav class="navbar">
             <button class="nav-left" id="hamburger">&#9776;</button>
-            <a href="/reports.php" class="nav-title">Analytics Dashboard</a>
+            <a href="<?= $currentRole === 'viewer' ? '/report.php' : '/reports.php' ?>" class="nav-title">Analytics Dashboard</a>
             <a href="/logout.php" class="nav-right">Logout</a>
         </nav>
         <div class="sidebar" id="sidebar">
-            <a href="/reports.php">Analytics Dashboard</a>
-            <a href="/dashboard.php">Dashboard (HW4 Checkpoint)</a>
+            <?php if ($currentRole !== 'viewer'): ?>
+                <a href="/reports.php">Analytics Dashboard</a>
+                <a href="/dashboard.php">Dashboard (HW4 Checkpoint)</a>
+            <?php endif; ?>
             <?php if ($currentRole === 'super_admin'): ?>
                 <a href="/admin.php">Manage Accounts</a>
             <?php endif; ?>
