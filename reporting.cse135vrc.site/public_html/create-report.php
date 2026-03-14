@@ -40,10 +40,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <nav class="navbar">
             <button class="nav-left" id="hamburger">&#9776;</button>
-            <a href="/dashboard.php" class="nav-title">Analytics Dashboard</a>
+            <a href="/reports.php" class="nav-title">Analytics Dashboard</a>
             <a href="/logout.php" class="nav-right">Logout</a>
         </nav>
         <div class="sidebar" id="sidebar">
+            <a href="/dashboard.php">Dashboard</a>
             <?php if ($currentRole === 'super_admin'): ?>
                 <a href="/admin.php">Manage Accounts</a>
             <?php endif; ?>

@@ -16,7 +16,7 @@ if ($currentRole === 'viewer') {
     <body>
         <nav class="navbar">
             <button class="nav-left" id="hamburger">&#9776;</button>
-            <a href="/dashboard.php" class="nav-title">Analytics Dashboard</a>
+            <a href="/reports.php" class="nav-title">Analytics Dashboard</a>
             <a href="/logout.php" class="nav-right">Logout</a>
         </nav>
 
