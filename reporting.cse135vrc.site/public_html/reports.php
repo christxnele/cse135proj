@@ -96,15 +96,17 @@ $defaultTab = $visibleTabs[0] ?? null;
                 </div>
             </div>
 
-            <h3 style="margin-bottom:0.5em;">Page Breakdown</h3>
-            <table class="report-table">
-                <thead>
-                    <tr>
-                        <th>URL</th><th>Views</th><th>Sessions</th><th>First Seen</th><th>Last Seen</th>
-                    </tr>
-                </thead>
-                <tbody id="traffic-table-body"></tbody>
-            </table>
+            <div class="export-keep-together">
+                <h3 style="margin-bottom:0.5em;">Page Breakdown</h3>
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>URL</th><th>Views</th><th>Sessions</th><th>First Seen</th><th>Last Seen</th>
+                        </tr>
+                    </thead>
+                    <tbody id="traffic-table-body"></tbody>
+                </table>
+            </div>
 
             <div class="charts-row">
                 <div class="chart-box">
@@ -268,15 +270,17 @@ $defaultTab = $visibleTabs[0] ?? null;
                 </div>
             </div>
 
-            <h3 style="margin-bottom:0.5em;">Scroll Depth per Page</h3>
-            <table class="report-table">
-                <thead>
-                    <tr>
-                        <th>URL</th><th>Sessions</th><th>Avg Max Scroll (px)</th><th>Reached 200px</th><th>Reached 500px</th><th>Reached 1000px</th>
-                    </tr>
-                </thead>
-                <tbody id="behavior-scroll-table-body"></tbody>
-            </table>
+            <div class="export-keep-together">
+                <h3 style="margin-bottom:0.5em;">Scroll Depth per Page</h3>
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>URL</th><th>Sessions</th><th>Avg Max Scroll (px)</th><th>Reached 200px</th><th>Reached 500px</th><th>Reached 1000px</th>
+                        </tr>
+                    </thead>
+                    <tbody id="behavior-scroll-table-body"></tbody>
+                </table>
+            </div>
 
             <?php if ($canComment): ?>
             <div class="reports-toolbar">
