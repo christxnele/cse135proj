@@ -44,7 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <a href="/logout.php" class="nav-right">Logout</a>
         </nav>
         <div class="sidebar" id="sidebar">
-            <a href="/dashboard.php">Dashboard</a>
+            <a href="/reports.php">Analytics Dashboard</a>
+            <a href="/dashboard.php">Dashboard (HW4 Checkpoint)</a>
             <?php if ($currentRole === 'super_admin'): ?>
                 <a href="/admin.php">Manage Accounts</a>
             <?php endif; ?>
