@@ -409,3 +409,23 @@
 }
 .report-item a { text-decoration: none; color: #1565c0; }
 .report-item a:hover { text-decoration: underline; }
+.exporting .report-table {
+    width: 100% !important;
+    page-break-inside: auto;
+    break-inside: auto;
+}
+
+.exporting .report-table thead {
+    display: table-header-group;
+}
+
+.exporting .report-table tr,
+.exporting .report-table th,
+.exporting .report-table td {
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+.exporting h3 {
+    page-break-after: avoid;
+}
