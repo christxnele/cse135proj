@@ -461,3 +461,8 @@
     page-break-before: avoid;
     break-before: avoid;
 }
+
+.exporting .export-keep-together {
+    page-break-inside: avoid;
+    break-inside: avoid;
+}

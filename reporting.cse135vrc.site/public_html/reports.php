@@ -160,15 +160,17 @@ $defaultTab = $visibleTabs[0] ?? null;
                 </div>
             </div>
 
-            <h3 style="margin-bottom:0.5em;">Per-Page Vitals Averages</h3>
-            <table class="report-table">
-                <thead>
-                    <tr>
-                        <th>URL</th><th>Avg LCP (ms)</th><th>LCP Score</th><th>Avg CLS</th><th>CLS Score</th><th>Avg INP (ms)</th><th>INP Score</th><th>Samples</th>
-                    </tr>
-                </thead>
-                <tbody id="performance-table-body"></tbody>
-            </table>
+            <div class="export-keep-together">
+                <h3 style="margin-bottom:0.5em;">Per-Page Vitals Averages</h3>
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>URL</th><th>Avg LCP (ms)</th><th>LCP Score</th><th>Avg CLS</th><th>CLS Score</th><th>Avg INP (ms)</th><th>INP Score</th><th>Samples</th>
+                        </tr>
+                    </thead>
+                    <tbody id="performance-table-body"></tbody>
+                </table>
+            </div>
 
             <?php if ($canComment): ?>
             <div class="reports-toolbar">
