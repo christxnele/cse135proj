@@ -309,6 +309,20 @@
     font-size: 0.95em;
 }
 .admin-form .btn-submit:hover { background: #555; }
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4em;
+    margin-top: 0.3em;
+}
+.checkbox-group label {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5em;
+    font-weight: normal;
+    margin-bottom: 0;
+}
 
 .reports-toolbar {
     display: flex;
